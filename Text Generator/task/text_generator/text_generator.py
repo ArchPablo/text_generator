@@ -17,9 +17,12 @@ class TextGenerator:
         f.close()
         return self.corpus
 
-    def get_trigrams(self):
+    def get_token(self):
         wst = WhitespaceTokenizer()
         self.tokens = wst.tokenize(self.corpus)
+        return self.tokens
+
+    def get_trigrams(self):
         trigram = list(trigrams(self.tokens))
         return trigram
 
