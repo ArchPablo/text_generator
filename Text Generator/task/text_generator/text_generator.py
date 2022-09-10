@@ -26,40 +26,13 @@ class TextGenerator:
         trigram = list(trigrams(self.tokens))
         return trigram
 
-    def get_chain_trig(self, trig: list):
-        for word in trig:
-            double_head = word[0] + ' ' + word[1]
+    def get_chain(self, trigram: list):
+        for word in trigram:
+            double_head = " ".join([word[0], word[1]])
             self.markov_chain.setdefault(double_head, {})
             self.markov_chain[double_head].setdefault(word[2], 0)
             self.markov_chain[double_head][word[2]] += 1
         return self.markov_chain
-
-    def get_stat(self, head_token: str):
-        print(f'Head: {head_token}')
-        for tail in self.markov_chain[head_token]:
-            print(f'Tail: {tail}  Count: {self.markov_chain[head_token][tail]}')
-
-    def get_st_text(self):
-        for _ in range(10):
-            text = []
-            prev_word = choice(list(self.markov_chain.keys()))
-            text.append(prev_word)
-            for i in range(9):
-                list_word = list(self.markov_chain[prev_word])
-                weights_ = tuple(self.markov_chain[prev_word].values())
-                word = choices(list_word, weights=weights_)
-                text.append(word[0])
-                prev_word = word[0]
-            print(' '.join(text))
-
-    def get_first_word(self):
-        while True:
-            word = choice(self.tokens)
-            cap_letter = bool(re.match(r'[A-Z]', word[0]))
-            if cap_letter and word[-1] not in self.PUNCTUATION:
-                return word
-            else:
-                pass
 
     def get_first_part(self):
         while True:
@@ -71,9 +44,8 @@ class TextGenerator:
             else:
                 pass
 
-    def get_text(self):
-        sentence = 10
-        while sentence != 0:
+    def generate_sentence(self, count_sentence: int):
+        while count_sentence != 0:
             word = self.get_first_part()
             text_split = word.split()
             while True:
@@ -89,12 +61,19 @@ class TextGenerator:
                 if word[-1] in self.PUNCTUATION and len_sentence >= 4:
                     break
             print(' '.join(text_split))
-            sentence -= 1
+            count_sentence -= 1
+
+    def get_stat_head(self, head_token: str):
+        print(f'Head: {head_token}')
+        for tail in self.markov_chain[head_token]:
+            print(f'Tail: {tail}  Count: {self.markov_chain[head_token][tail]}')
 
 
 generator = TextGenerator()
 path_file = str(input(''))
 corpus = generator.get_corpus(path_file)
-bigram = generator.get_trigrams()
-generator.get_chain_trig(bigram)
-generator.get_text()
+generator.get_token()
+trigrams = generator.get_trigrams()
+generator.get_chain(trigrams)
+generator.generate_sentence(10)
+
