@@ -1,37 +1,27 @@
-from nltk import WhitespaceTokenizer
-from nltk import bigrams as _bigrams
-from nltk import trigrams
-from collections import Counter
-from random import choices
-from random import choice
+from nltk import WhitespaceTokenizer, trigrams
+from random import choices, choice
 import re
 
 
-class Markov_chain:
+class TextGenerator:
     PUNCTUATION = {".", "!", "?"}
 
     def __init__(self):
         self.markov_chain = dict()
+        self.corpus = str()
         self.tokens = list()
 
-    def get_corpus(self, name_file: str):
-        f = open(f'{name_file}', "r", encoding="utf-8")
-        corpus_text = f.read()
+    def get_corpus(self, path: str):
+        f = open(f'{path}', "r", encoding="utf-8")
+        self.corpus = f.read()
         f.close()
-        return corpus_text
+        return self.corpus
 
-    def get_counter(self, corpus):
+    def get_trigrams(self):
         wst = WhitespaceTokenizer()
-        tokens = wst.tokenize(corpus)
-        bow_counter = Counter(tokens)
-        return bow_counter
-
-
-    def get_trigrams(self, corpus: str):
-        wst = WhitespaceTokenizer()
-        self.tokens = wst.tokenize(corpus)
-        trig = list(trigrams(self.tokens))
-        return trig
+        self.tokens = wst.tokenize(self.corpus)
+        trigram = list(trigrams(self.tokens))
+        return trigram
 
     def get_chain_trig(self, trig: list):
         for word in trig:
@@ -68,29 +58,40 @@ class Markov_chain:
             else:
                 pass
 
+    def get_first_part(self):
+        while True:
+            part = choice(list(self.markov_chain.keys()))
+            two_word = part.split()
+            cap_letter = bool(re.match(r'[A-Z]', part[0]))
+            if cap_letter and two_word[0][-1] not in self.PUNCTUATION and two_word[1][-1] not in self.PUNCTUATION:
+                return part
+            else:
+                pass
+
     def get_text(self):
         sentence = 10
         while sentence != 0:
-            word = self.get_first_word()
-            text = word
+            word = self.get_first_part()
+            text_split = word.split()
             while True:
-                len_sentence = len(text.split(' '))
+                current_tail = " ".join([text_split[-2], text_split[-1]])
+                len_sentence = len(text_split)
                 tails = []
                 weight = []
-                for tail in self.markov_chain[word]:
+                for tail in self.markov_chain[current_tail]:
                     tails.append(tail)
-                    weight.append(self.markov_chain[word][tail])
+                    weight.append(self.markov_chain[current_tail][tail])
                 word = choices(tails, weight, k=1)[0]
-                text += f' {word}'
+                text_split.append(word)
                 if word[-1] in self.PUNCTUATION and len_sentence >= 4:
                     break
-            print(text)
+            print(' '.join(text_split))
             sentence -= 1
 
 
-generator = Markov_chain()
+generator = TextGenerator()
 path_file = str(input(''))
 corpus = generator.get_corpus(path_file)
-bigram = generator.get_trigrams(corpus)
+bigram = generator.get_trigrams()
 generator.get_chain_trig(bigram)
 generator.get_text()
